@@ -1,0 +1,5 @@
+#You are an asset manager who had been asked to allocate $1 million worth into a portfolio of MPL. 
+#In this assignment you will analyze a database of consumer loans originated on an online platform.
+#You should start with a sample database of 10,000 three-year consumer loans, File1_IS_data.csv.
+#The database contains the following details for each borrower: ID, Loan Amount, Interest Rate (Annual in Percentage), Credit Grade, Detailed Credit Grade, Length of Employment, 
+#Revolving Credit Balance, Revolving Credit Utility, FICO Score, Home Ownership, Annual Income, Employment Verification, the Statues of the Loan, Default Statues.
