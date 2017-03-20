@@ -1,0 +1,129 @@
+---
+title: "Assignment3"
+author: "Jiaqiu Wang"
+date: "March 4, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part I: OLS Regression
+
+```{r}
+rm(list = ls())
+setwd("C:/Users/rache/Google Drive/Spring 2017 Academic/fintech/assignment/ass3")
+library("glmnet")
+library("dplyr")
+Data_1970 <- read.csv("Data_Daily_1970.csv",header=TRUE) 
+head(Data_1970)
+```
+
+```{r}
+industry_return <- paste("FFInd",1:49, sep="")
+lag_industy_return <- apply(Data_1970[,industry_return], 2, lag)
+lag_industy_return <- lag_industy_return[-1,]
+
+mkt_excess <-Data_1970$mkt_excess
+mkt_excess <- mkt_excess[-1]
+
+model1 <- lm(mkt_excess ~ lag_industy_return)
+summary(model1)
+ols_coef <- coef(model1)
+```
+R-squared is 0.3564, over-all fitting p-value is 2.899e-05, it appears that the lagged portfolio
+returns can predict the excess return of US equity market.
+
+## Part II: Lasso Regression
+
+```{r}
+model2 <- cv.glmnet(lag_industy_return,mkt_excess,alpha=1,standardize=FALSE)
+bestlam <- model2$lambda.min
+lasso_coef <- coef(model2, s = bestlam)
+lasso_coef <- as.numeric(lasso_coef)
+```
+
+```{r}
+#plot histgram for both regression coefficients
+hist(ols_coef,plot=TRUE)
+hist(lasso_coef,plot = TRUE)
+```
+
+From the histgram we can see that compared with OLS coefficients, the coefficient distribution from Lasso regression has more zeros, and the non-zero coefficients tend to be further away from zero.
+
+
+## Part 3: Out-of-sample trading experiment
+With the OLS regression coefficients, predict the daily returns in 1971 using lag data.Then construct the portfolio using the simple strategy: long the US equity market if the predicted return is positive, or short if not. Calculate the gross excess return of your portfolio, as well as the Sharpe Ratio using daily returns.
+
+```{r}
+Data_1971 <- read.csv("Data_Daily_1971.csv",header=TRUE) 
+#head(Data_1971)
+lag_industy_return_new <- apply(Data_1971[,industry_return], 2, lag)
+lag_industy_return_new <- lag_industy_return_new[-1,]
+
+
+#predict with OLS coefficients
+prediction_ols <- predict(model1,newx=lag_industy_return_new)
+#predict with lasso coefficients
+prediction_lasso <- predict(model2,s=bestlam, newx=lag_industy_return_new)
+
+#create a new data frame to store return info
+mkt_excess_new <-Data_1971$mkt_excess
+return2017 <- data.frame(mkt_excess_new)
+return2017$ols_excess <- 0
+return2017$lasso_excess <- 0
+return2017<-return2017[2:(dim(return2017)[1]),]
+
+
+#calculate ols return
+for (i in 1:nrow(return2017)){
+  if (prediction_ols[[i]]>=0){
+    return2017$ols_excess[[i]]<-return2017$mkt_excess_new[[i]]
+  } else {
+    return2017$ols_excess[[i]]<-return2017$mkt_excess_new[[i]]*(-1)
+  }
+}
+
+#calculate ols gross exces return
+for (i in 1:nrow(return2017)){
+  ols_gross_return <- 1
+  ols_gross_return <- ols_gross_return*(1+return2017$ols_excess[[i]])
+}
+print(ols_gross_return)
+
+#calculate ols sharpe ratio
+ols_sharpe <- mean(return2017$ols_excess)/sd(return2017$ols_excess)
+print(ols_sharpe)
+
+
+#calculate lasso return
+for (i in 1:nrow(return2017)){
+  if (prediction_lasso[[i]]>=0){
+    return2017$lasso_excess[[i]]<-return2017$mkt_excess_new[[i]]
+  } else {
+    return2017$lasso_excess[[i]]<-return2017$mkt_excess_new[[i]]*(-1)
+  }
+}
+
+#calculate lasso gross exces return
+for (i in 1:nrow(return2017)){
+  lasso_gross_return <- prod(1+return2017$lasso_excess[[i]])-1
+}
+print(lasso_gross_return)
+
+#calculate lasso sharpe ratio
+lasso_sharpe <- mean(return2017$lasso_excess)/sd(return2017$lasso_excess)
+print(lasso_sharpe)
+```
+
+
+```{r}
+#Plot the history of gross excess return during 1971 for both strategies and for holding market portfolio
+```
+
+
+
+
+
+
