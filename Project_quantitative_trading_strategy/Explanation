@@ -1,0 +1,6 @@
+#daily return data of 49 different industries and market excess return data
+#apply machine learning tools to develop a market-timing strategy to decide when to go long/short the S&P500 index
+#This is in general a difficult problem since the probability of the index going up on any given day is 0.5.
+#Intuition:
+#information effecting one industry may effect other industries but these cross-industry linkages are subtle
+#uncover these linkages by estimating the relationship between different industries’ returns and subsequent market return
